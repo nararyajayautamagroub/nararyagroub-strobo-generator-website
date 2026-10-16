@@ -1,0 +1,20 @@
+(() => {
+const canvas=document.getElementById('stroboCanvas'),ctx=canvas.getContext('2d');
+const $=id=>document.getElementById(id);
+let running=false,raf=0,start=0,lastPhase=-1,recorder=null,chunks=[];
+function settings(){return{pattern:$('pattern').value,a:$('colorA').value,b:$('colorB').value,speed:+$('speed').value,brightness:+$('brightness').value/100,size:+$('panelSize').value/100,glow:$('glow').checked,labels:$('labels').checked}}
+function draw(time=0){const s=settings(),w=canvas.width,h=canvas.height;const phase=Math.floor(time/1000*s.speed*2)%2;if(phase!==lastPhase||running){lastPhase=phase;ctx.clearRect(0,0,w,h);ctx.fillStyle='#08090d';ctx.fillRect(0,0,w,h);ctx.save();ctx.globalAlpha=s.brightness;
+const rect=(x,y,rw,rh,color)=>{ctx.fillStyle=color;if(s.glow){ctx.shadowColor=color;ctx.shadowBlur=42}ctx.fillRect(x,y,rw,rh);ctx.shadowBlur=0};
+const side=w*s.size/2,mid=(w-side)/2,top=(h-h*s.size)/2;
+switch(s.pattern){case'alternate':rect(0,0,w/2,h,phase?s.b:s.a);rect(w/2,0,w/2,h,phase?s.a:s.b);break;case'full':rect(0,0,w,h,phase?s.b:s.a);break;case'quad':rect(0,0,w/2,h/2,phase?s.b:s.a);rect(w/2,0,w/2,h/2,phase?s.a:s.b);rect(0,h/2,w/2,h/2,phase?s.a:s.b);rect(w/2,h/2,w/2,h/2,phase?s.b:s.a);break;case'pulse':rect(0,0,w,h,phase?s.b:s.a);ctx.fillStyle='#08090d';ctx.globalAlpha=.12;ctx.fillRect(0,0,w,h);break;case'split':rect(mid,0,side,h,phase?s.b:s.a);rect(0,0,mid,h,phase?s.a:s.b);rect(mid+side,0,mid,h,phase?s.a:s.b);break}
+ctx.restore();if(s.labels){ctx.font='bold 30px Manrope, sans-serif';ctx.fillStyle='#fff';ctx.shadowColor='#000';ctx.shadowBlur=6;ctx.fillText('NARARYA GROUB • STROBO GENERATOR',34,h-36);ctx.shadowBlur=0}}
+if(running)raf=requestAnimationFrame(draw)}
+function startAnim(){if(running)return;running=true;start=performance.now();$('toggleStrobo').textContent='Ⅱ Jeda animasi';$('stroboState').textContent='RUNNING';raf=requestAnimationFrame(draw)}
+function stopAnim(){running=false;cancelAnimationFrame(raf);$('toggleStrobo').textContent='▶ Mulai animasi';$('stroboState').textContent='PAUSED';draw(performance.now())}
+$('toggleStrobo').addEventListener('click',()=>running?stopAnim():startAnim());
+$('resetStrobo').addEventListener('click',()=>{stopAnim();lastPhase=-1;draw(0)});
+['pattern','colorA','colorB','speed','brightness','panelSize','glow','labels'].forEach(id=>$(id).addEventListener('input',()=>{ $('speedValue').textContent=$('speed').value+' Hz';$('brightnessValue').textContent=$('brightness').value+'%';$('sizeValue').textContent=$('panelSize').value+'%';lastPhase=-1;draw(performance.now())}));
+$('saveStrobo').addEventListener('click',()=>{const a=document.createElement('a');a.download='nararya-strobo.png';a.href=canvas.toDataURL('image/png');a.click()});
+$('recordStrobo').addEventListener('click',()=>{const btn=$('recordStrobo');if(recorder&&recorder.state==='recording'){recorder.stop();return}if(!canvas.captureStream||!window.MediaRecorder){$('stroboHint').textContent='Browser ini belum mendukung rekaman video. Coba browser terbaru.';return}chunks=[];const stream=canvas.captureStream(30);let mime='video/webm;codecs=vp9';if(!MediaRecorder.isTypeSupported(mime))mime='video/webm';try{recorder=new MediaRecorder(stream,{mimeType:mime})}catch(e){recorder=new MediaRecorder(stream)}recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};recorder.onstop=()=>{const blob=new Blob(chunks,{type:'video/webm'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='nararya-strobo.webm';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);btn.textContent='● Rekam video';btn.classList.remove('recording');$('stroboHint').textContent='Rekaman selesai dan diunduh.'};recorder.start();btn.textContent='■ Hentikan rekaman';btn.classList.add('recording');$('stroboHint').textContent='Sedang merekam. Tekan tombol lagi untuk mengakhiri.';if(!running)startAnim()});
+draw(0);
+})();
