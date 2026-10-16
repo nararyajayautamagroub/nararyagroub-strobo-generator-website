@@ -4,7 +4,7 @@ Website tools berbasis HTML, CSS, dan JavaScript murni. Tidak membutuhkan framew
 
 ## Fitur
 - **Strobo Generator:** pola alternate, full screen, quad, pulse, dan split; warna A/B; kecepatan; kecerahan; ukuran panel; glow; label.
-- **Running Text Generator:** teks kustom, warna teks/latar/glow, kecepatan, ukuran dan ketebalan font, gaya LED glow/outline/solid/rainbow, bingkai.
+- **Image Motion Studio:** unggah PNG/JPG/WebP; preset Zoom In/Out, Pan, Rotasi, Zoom + Rotasi, Floating, Shake, Fade, Ken Burns; kontrol durasi/intensitas, mode cover/contain, latar, FPS, timeline, ekspor PNG dan WebM.\n- **Running Text Generator:** teks kustom, warna teks/latar/glow, kecepatan, ukuran dan ketebalan font, gaya LED glow/outline/solid/rainbow, bingkai.
 - Preview canvas secara langsung.
 - Ekspor preview menjadi PNG.
 - Rekam animasi menjadi WebM di browser yang mendukung Canvas Capture Stream dan MediaRecorder.
@@ -16,6 +16,7 @@ Website tools berbasis HTML, CSS, dan JavaScript murni. Tidak membutuhkan framew
 ├── index.html
 ├── strobo.html
 ├── running-text.html
+├── image-motion.html
 ├── assets/
 │   ├── style.css
 │   ├── strobo.js
