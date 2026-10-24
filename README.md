@@ -49,3 +49,13 @@ Efek strobo berkedip cepat dapat memicu ketidaknyamanan atau kejang pada orang y
 - GitHub Actions menjalankan smoke test browser pada setiap push ke `main`, pull request ke `main`, dan dapat dijalankan manual dari tab **Actions**.
 - Jika tes berhasil, screenshot desktop dan mobile tersedia sebagai artifact bernama `nararya-visual-test-screenshots` pada workflow run.
 - Buka **Actions → Build and Visual Smoke Test → run terbaru → Artifacts** untuk mengunduh screenshot hasil tes.
+
+
+## Otomasi, verifikasi, dan integrasi data
+
+- GitHub Actions menjalankan pengujian browser saat ada push ke `main`, pull request, atau pemicu manual. Hasil sukses/gagal terlihat pada tab **Actions**; workflow tidak membuat fitur baru secara mandiri.
+- Tes browser memeriksa homepage, generator strobo, running text, Image Motion Studio, kontrol animasi, autosave lokal, manifest PWA, ikon aplikasi, dan registrasi service worker. Screenshot tes diunggah sebagai artifact bila dihasilkan.
+- **Scraper tidak dipasang secara membabi buta.** Generator strobo, running text, dan animasi gambar bekerja dari input pengguna di browser, sehingga tidak membutuhkan data eksternal/API. Mengambil data dari 10 situs tanpa kebutuhan sumber yang jelas tidak meningkatkan akurasi fitur ini.
+- Jika kelak ada fitur yang benar-benar membutuhkan data eksternal, gunakan adapter sumber yang terpisah, timeout, validasi skema, cache dengan waktu pembaruan, batas percobaan, pencatatan sumber, dan fallback ke sumber lain. Sepuluh adapter hanya masuk akal jika ada sepuluh sumber relevan yang diizinkan dan dapat diuji.
+- **Fallback bukan berarti mengganti scraper dengan AI secara otomatis.** Model AI harus dikonfigurasi melalui backend/proxy yang aman dengan API key tersimpan sebagai GitHub Actions secret atau secret penyedia hosting. Jangan menaruh API key di HTML/JavaScript publik. Hasil AI perlu ditandai sebagai hasil model, bukan data terverifikasi.
+- Data real-time dan akurasi 100% tidak dapat dijamin secara universal. Status sumber, timestamp, validasi, dan kegagalan koneksi harus ditampilkan secara jujur. Saat ini aplikasi tidak memiliki backend, API eksternal, scraper aktif, atau layanan AI generatif.
