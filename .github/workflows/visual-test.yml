@@ -50,6 +50,9 @@ jobs:
             if (!manifestResponse.ok()) throw new Error('PWA manifest did not load');
             const manifest = await manifestResponse.json();
             if (manifest.name !== 'Nararya Groub Visual Generator' || manifest.display !== 'standalone') throw new Error('PWA manifest metadata is invalid');
+            if (!manifest.icons?.some(icon => icon.src === './assets/icon.svg')) throw new Error('PWA manifest does not reference the branded app icon');
+            const iconResponse = await page.request.get('http://127.0.0.1:4173/assets/icon.svg');
+            if (!iconResponse.ok() || !(await iconResponse.text()).includes('<svg')) throw new Error('Branded PWA icon did not load');
             const workerResponse = await page.request.get('http://127.0.0.1:4173/service-worker.js');
             if (!workerResponse.ok() || !(await workerResponse.text()).includes('addAll(APP_FILES)')) throw new Error('Offline service worker did not load or lacks app precache');
             await page.waitForTimeout(500);
