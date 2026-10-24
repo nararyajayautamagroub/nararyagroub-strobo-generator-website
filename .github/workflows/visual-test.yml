@@ -58,6 +58,9 @@ jobs:
             await page.locator('#applyAI').click();
             if (!(await page.locator('#aiResult').innerText()).includes('Zoom In')) throw new Error('AI assistant did not apply the prompt');
             if (!(await page.locator('#projectId').innerText()).startsWith('NG-MOTION-')) throw new Error('Project ID was not generated');
+            await page.waitForTimeout(400);
+            const autosaved = await page.evaluate(() => JSON.parse(localStorage.getItem('nararya-image-motion-project-v1') || 'null'));
+            if (!autosaved || autosaved.settings.duration !== '8') throw new Error('Real-time local autosave did not persist prompt settings');
             await page.locator('#canvasWidth').fill('1080');
             await page.locator('#canvasHeight').fill('1920');
             await page.locator('#aspectPreset').selectOption('9:16');
