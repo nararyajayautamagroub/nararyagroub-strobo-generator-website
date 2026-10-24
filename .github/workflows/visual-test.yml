@@ -98,6 +98,31 @@ jobs:
               if (await page.locator(selector).count() < 1) throw new Error('Page smoke test failed: '+path+' missing '+selector);
               await page.screenshot({path:'artifacts/'+path.replaceAll('/','').replace('.html','')+'-smoke.png', fullPage:true});
             }
+            // Exercise the strobo generator controls and ensure the UI responds.
+            await page.goto('http://127.0.0.1:4173/strobo.html', {waitUntil:'networkidle'});
+            for (const id of ['stroboCanvas','toggleStrobo','resetStrobo','saveStrobo','recordStrobo','pattern','colorA','colorB','speed','brightness','panelSize','glow','labels']) {
+              if (await page.locator('#'+id).count() !== 1) throw new Error('Strobo control missing: '+id);
+            }
+            await page.locator('#pattern').selectOption('quad');
+            await page.locator('#speed').fill('8');
+            if (!(await page.locator('#speedValue').innerText()).includes('8')) throw new Error('Strobo speed output did not update');
+            await page.locator('#toggleStrobo').click();
+            if (!(await page.locator('#stroboState').innerText()).includes('RUNNING')) throw new Error('Strobo animation did not start');
+            await page.locator('#toggleStrobo').click();
+            if (!(await page.locator('#stroboState').innerText()).includes('PAUSED')) throw new Error('Strobo animation did not pause');
+            // Exercise running-text editing, styles, and pause/resume.
+            await page.goto('http://127.0.0.1:4173/running-text.html', {waitUntil:'networkidle'});
+            for (const id of ['textCanvas','toggleText','resetText','saveText','recordText','textInput','textColor','bgColor','glowColor','textSpeed','fontSize','fontWeight','textStyle','textBorder']) {
+              if (await page.locator('#'+id).count() !== 1) throw new Error('Running-text control missing: '+id);
+            }
+            await page.locator('#textInput').fill('NARARYA TEST');
+            await page.locator('#textStyle').selectOption('rainbow');
+            await page.locator('#textSpeed').fill('7');
+            if (!(await page.locator('#textSpeedValue').innerText()).includes('7')) throw new Error('Running-text speed output did not update');
+            await page.locator('#toggleText').click();
+            if (!(await page.locator('#textState').innerText()).includes('DIJEDA')) throw new Error('Running text did not pause');
+            await page.locator('#toggleText').click();
+            if (!(await page.locator('#textState').innerText()).includes('BERJALAN')) throw new Error('Running text did not resume');
             if (errors.length) throw new Error('Browser JS errors: '+errors.join(' | '));
             await browser.close();
             console.log('PASS: homepage, strobo, running text, animation controls, prompt assistant, autosave, theme, PWA manifest, service worker registration, responsive layout, and screenshots.');
