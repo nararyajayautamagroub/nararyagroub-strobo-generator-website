@@ -76,9 +76,19 @@ jobs:
             await page.locator('#play').click();
             await page.setViewportSize({width:390,height:844});
             await page.screenshot({path:'artifacts/image-motion-mobile.png', fullPage:true});
+            // Smoke-test every public tool page, not just the animation studio.
+            for (const [path, selector] of [
+              ['/index.html', '.tool-grid'],
+              ['/strobo.html', 'canvas'],
+              ['/running-text.html', 'canvas']
+            ]) {
+              await page.goto('http://127.0.0.1:4173'+path, {waitUntil:'networkidle'});
+              if (await page.locator(selector).count() < 1) throw new Error('Page smoke test failed: '+path+' missing '+selector);
+              await page.screenshot({path:'artifacts/'+path.replaceAll('/','').replace('.html','')+'-smoke.png', fullPage:true});
+            }
             if (errors.length) throw new Error('Browser JS errors: '+errors.join(' | '));
             await browser.close();
-            console.log('PASS: controls, prompt assistant, project ID, custom animation, transitions, desktop/mobile screenshots.');
+            console.log('PASS: homepage, strobo, running text, animation controls, prompt assistant, autosave, theme, responsive layout, and screenshots.');
           })().catch(e => { console.error(e); process.exit(1); });
           EOF
           node smoke-test.cjs
