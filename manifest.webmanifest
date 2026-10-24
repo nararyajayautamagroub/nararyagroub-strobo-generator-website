@@ -1,0 +1,12 @@
+{
+  "name": "Nararya Groub Visual Generator",
+  "short_name": "Nararya Visual",
+  "description": "Generator strobo, running text LED, dan animasi gambar.",
+  "lang": "id",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101116",
+  "theme_color": "#101116",
+  "icons": []
+}
