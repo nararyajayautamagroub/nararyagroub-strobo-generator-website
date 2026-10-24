@@ -45,13 +45,19 @@ jobs:
             page.on('pageerror', e => errors.push(e.message));
             await page.goto('http://127.0.0.1:4173/image-motion.html', {waitUntil:'networkidle'});
             await page.screenshot({path:'artifacts/image-motion-desktop.png', fullPage:true});
-            for (const id of ['upload','preset','zoomStart','zoomEnd','moveX','moveY','rotateEnd','transitionIn','transitionOut','duration','intensity','play','export','projectId','liveClock','liveStatus','aiPrompt','applyAI','saveProject','loadProject']) {
+            for (const id of ['upload','preset','canvasWidth','canvasHeight','aspectPreset','pngCopies','applySize','zoomStart','zoomEnd','moveX','moveY','rotateEnd','transitionIn','transitionOut','duration','intensity','play','export','projectId','liveClock','liveStatus','aiPrompt','applyAI','saveProject','loadProject']) {
               if (await page.locator('#'+id).count() !== 1) throw new Error('Missing UI element: '+id);
             }
             await page.locator('#aiPrompt').fill('zoom pelan selama 8 detik');
             await page.locator('#applyAI').click();
             if (!(await page.locator('#aiResult').innerText()).includes('Zoom In')) throw new Error('AI assistant did not apply the prompt');
             if (!(await page.locator('#projectId').innerText()).startsWith('NG-MOTION-')) throw new Error('Project ID was not generated');
+            await page.locator('#canvasWidth').fill('1080');
+            await page.locator('#canvasHeight').fill('1920');
+            await page.locator('#aspectPreset').selectOption('9:16');
+            await page.locator('#applySize').click();
+            if (await page.locator('#stage').evaluate(el=>el.width) !== 1080) throw new Error('Custom canvas width was not applied');
+            if (await page.locator('#stage').evaluate(el=>el.height) !== 1920) throw new Error('Custom canvas height was not applied');
             await page.locator('#preset').selectOption('custom');
             await page.locator('#zoomEnd').fill('165');
             await page.locator('#transitionIn').selectOption('fade');
