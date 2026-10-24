@@ -45,7 +45,11 @@ jobs:
             page.on('pageerror', e => errors.push(e.message));
             await page.goto('http://127.0.0.1:4173/image-motion.html', {waitUntil:'networkidle'});
             await page.screenshot({path:'artifacts/image-motion-desktop.png', fullPage:true});
-            for (const id of ['upload','preset','canvasWidth','canvasHeight','aspectPreset','pngCopies','applySize','zoomStart','zoomEnd','moveX','moveY','rotateEnd','transitionIn','transitionOut','duration','intensity','play','export','projectId','liveClock','liveStatus','aiPrompt','applyAI','saveProject','loadProject']) {
+            await page.locator('.theme-toggle').click();
+            if (await page.locator('html').getAttribute('data-theme') !== 'light') throw new Error('Light theme did not activate');
+            await page.screenshot({path:'artifacts/image-motion-light.png', fullPage:true});
+            await page.locator('.theme-toggle').click();
+            for (const id of ['theme-toggle','upload','preset','canvasWidth','canvasHeight','aspectPreset','pngCopies','applySize','zoomStart','zoomEnd','moveX','moveY','rotateEnd','transitionIn','transitionOut','duration','intensity','play','export','projectId','liveClock','liveStatus','aiPrompt','applyAI','saveProject','loadProject']) {
               if (await page.locator('#'+id).count() !== 1) throw new Error('Missing UI element: '+id);
             }
             await page.locator('#aiPrompt').fill('zoom pelan selama 8 detik');
