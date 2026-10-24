@@ -1,0 +1,72 @@
+name: Build and Visual Smoke Test
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install browser test tools
+        run: |
+          npm init -y
+          npm install --save-dev playwright
+          npx playwright install --with-deps chromium
+      - name: Start static website
+        run: |
+          python3 -m http.server 4173 > /tmp/nararya-server.log 2>&1 &
+          echo $! > /tmp/nararya-server.pid
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:4173/image-motion.html >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/nararya-server.log
+          exit 1
+      - name: Test UI and capture screenshots
+        run: |
+          mkdir -p artifacts
+          cat > smoke-test.cjs <<'EOF'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch({headless:true});
+            const page = await browser.newPage({viewport:{width:1440,height:1000}, deviceScaleFactor:1});
+            const errors = [];
+            page.on('pageerror', e => errors.push(e.message));
+            await page.goto('http://127.0.0.1:4173/image-motion.html', {waitUntil:'networkidle'});
+            await page.screenshot({path:'artifacts/image-motion-desktop.png', fullPage:true});
+            for (const id of ['upload','preset','zoomStart','zoomEnd','moveX','moveY','rotateEnd','transitionIn','transitionOut','duration','intensity','play','export']) {
+              if (await page.locator('#'+id).count() !== 1) throw new Error('Missing UI element: '+id);
+            }
+            await page.locator('#preset').selectOption('custom');
+            await page.locator('#zoomEnd').fill('165');
+            await page.locator('#transitionIn').selectOption('fade');
+            await page.locator('#transitionOut').selectOption('slide-left');
+            await page.locator('#play').click();
+            await page.waitForTimeout(250);
+            await page.locator('#play').click();
+            await page.setViewportSize({width:390,height:844});
+            await page.screenshot({path:'artifacts/image-motion-mobile.png', fullPage:true});
+            if (errors.length) throw new Error('Browser JS errors: '+errors.join(' | '));
+            await browser.close();
+            console.log('PASS: controls, custom animation, transitions, desktop/mobile screenshots.');
+          })().catch(e => { console.error(e); process.exit(1); });
+          EOF
+          node smoke-test.cjs
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nararya-visual-test-screenshots
+          path: artifacts/
+          if-no-files-found: warn
