@@ -45,9 +45,13 @@ jobs:
             page.on('pageerror', e => errors.push(e.message));
             await page.goto('http://127.0.0.1:4173/image-motion.html', {waitUntil:'networkidle'});
             await page.screenshot({path:'artifacts/image-motion-desktop.png', fullPage:true});
-            for (const id of ['upload','preset','zoomStart','zoomEnd','moveX','moveY','rotateEnd','transitionIn','transitionOut','duration','intensity','play','export']) {
+            for (const id of ['upload','preset','zoomStart','zoomEnd','moveX','moveY','rotateEnd','transitionIn','transitionOut','duration','intensity','play','export','projectId','liveClock','liveStatus','aiPrompt','applyAI','saveProject','loadProject']) {
               if (await page.locator('#'+id).count() !== 1) throw new Error('Missing UI element: '+id);
             }
+            await page.locator('#aiPrompt').fill('zoom pelan selama 8 detik');
+            await page.locator('#applyAI').click();
+            if (!(await page.locator('#aiResult').innerText()).includes('Zoom In')) throw new Error('AI assistant did not apply the prompt');
+            if (!(await page.locator('#projectId').innerText()).startsWith('NG-MOTION-')) throw new Error('Project ID was not generated');
             await page.locator('#preset').selectOption('custom');
             await page.locator('#zoomEnd').fill('165');
             await page.locator('#transitionIn').selectOption('fade');
@@ -59,7 +63,7 @@ jobs:
             await page.screenshot({path:'artifacts/image-motion-mobile.png', fullPage:true});
             if (errors.length) throw new Error('Browser JS errors: '+errors.join(' | '));
             await browser.close();
-            console.log('PASS: controls, custom animation, transitions, desktop/mobile screenshots.');
+            console.log('PASS: controls, prompt assistant, project ID, custom animation, transitions, desktop/mobile screenshots.');
           })().catch(e => { console.error(e); process.exit(1); });
           EOF
           node smoke-test.cjs
