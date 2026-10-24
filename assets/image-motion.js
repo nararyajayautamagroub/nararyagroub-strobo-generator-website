@@ -47,4 +47,25 @@ if(/fade masuk|transisi masuk fade/.test(p)){choose('transitionIn','fade','Fade 
 if(!changes.length){$('aiResult').textContent='Instruksi belum dikenali. Coba: “zoom pelan selama 8 detik”, “geser ke kiri”, “efek melayang”, atau “fade masuk”.';return}
 settingIds.forEach(id=>$(id).dispatchEvent(new Event('input',{bubbles:true})));paint(elapsed);timeUI(elapsed);$('aiResult').textContent='Instruksi diterapkan: '+changes.join(', ')+'. Ini asisten lokal berbasis aturan, bukan model AI cloud; untuk generasi AI penuh diperlukan backend/API.';refreshLiveStatus()});
 
+// Simpan pengaturan secara otomatis saat kontrol berubah; tidak mengunggah gambar atau data ke server.
+let autosaveTimer=0;
+function autosaveSettings(){
+  clearTimeout(autosaveTimer);
+  autosaveTimer=setTimeout(()=>{
+    try{
+      localStorage.setItem(projectKey,JSON.stringify(projectData()));
+      $('projectNotice').textContent='Autosave aktif • pengaturan terakhir disimpan di perangkat ini.';
+    }catch(e){
+      $('projectNotice').textContent='Autosave tidak tersedia. Gunakan tombol Simpan Proyek untuk mengunduh JSON.';
+    }
+  },250);
+}
+settingIds.forEach(id=>{
+  const el=$(id);
+  el.addEventListener('input',autosaveSettings);
+  el.addEventListener('change',autosaveSettings);
+});
+window.addEventListener('pagehide',()=>{
+  try{localStorage.setItem(projectKey,JSON.stringify(projectData()))}catch(e){}
+});
 const outs={canvasWidth:['widthVal',v=>v+' px'],canvasHeight:['heightVal',v=>v+' px'],pngCopies:['copiesVal',v=>v+' file'+(+v===1?'':'s')],duration:['durVal',v=>v+' detik'],intensity:['intVal',v=>v+'%'],zoomStart:['zoomStartVal',v=>v+'%'],zoomEnd:['zoomEndVal',v=>v+'%'],moveX:['moveXVal',v=>v+'%'],moveY:['moveYVal',v=>v+'%'],rotateEnd:['rotateVal',v=>v+'°']};Object.entries(outs).forEach(([id,[oid,fn]])=>$(oid).textContent=fn($(id).value));paint(0)})();
