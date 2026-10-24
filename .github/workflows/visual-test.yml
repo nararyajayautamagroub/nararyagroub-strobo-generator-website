@@ -49,7 +49,7 @@ jobs:
             if (await page.locator('html').getAttribute('data-theme') !== 'light') throw new Error('Light theme did not activate');
             await page.screenshot({path:'artifacts/image-motion-light.png', fullPage:true});
             await page.locator('.theme-toggle').click();
-            for (const id of ['theme-toggle','upload','preset','canvasWidth','canvasHeight','aspectPreset','pngCopies','applySize','zoomStart','zoomEnd','moveX','moveY','rotateEnd','transitionIn','transitionOut','duration','intensity','play','export','projectId','liveClock','liveStatus','aiPrompt','applyAI','saveProject','loadProject']) {
+            for (const id of ['upload','preset','canvasWidth','canvasHeight','aspectPreset','pngCopies','applySize','zoomStart','zoomEnd','moveX','moveY','rotateEnd','transitionIn','transitionOut','duration','intensity','play','export','projectId','liveClock','liveStatus','aiPrompt','applyAI','saveProject','loadProject']) {
               if (await page.locator('#'+id).count() !== 1) throw new Error('Missing UI element: '+id);
             }
             await page.locator('#aiPrompt').fill('zoom pelan selama 8 detik');
