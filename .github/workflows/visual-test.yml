@@ -46,6 +46,15 @@ jobs:
             const errors = [];
             page.on('pageerror', e => errors.push(e.message));
             await page.goto('http://127.0.0.1:4173/image-motion.html', {waitUntil:'networkidle'});
+            const manifestResponse = await page.request.get('http://127.0.0.1:4173/manifest.webmanifest');
+            if (!manifestResponse.ok()) throw new Error('PWA manifest did not load');
+            const manifest = await manifestResponse.json();
+            if (manifest.name !== 'Nararya Groub Visual Generator' || manifest.display !== 'standalone') throw new Error('PWA manifest metadata is invalid');
+            const workerResponse = await page.request.get('http://127.0.0.1:4173/service-worker.js');
+            if (!workerResponse.ok() || !(await workerResponse.text()).includes('addAll(APP_FILES)')) throw new Error('Offline service worker did not load or lacks app precache');
+            await page.waitForTimeout(500);
+            const swRegistered = await page.evaluate(() => navigator.serviceWorker.getRegistration().then(reg => Boolean(reg)));
+            if (!swRegistered) throw new Error('Service worker did not register');
             await page.screenshot({path:'artifacts/image-motion-desktop.png', fullPage:true});
             await page.locator('.theme-toggle').click();
             if (await page.locator('html').getAttribute('data-theme') !== 'light') throw new Error('Light theme did not activate');
@@ -88,7 +97,7 @@ jobs:
             }
             if (errors.length) throw new Error('Browser JS errors: '+errors.join(' | '));
             await browser.close();
-            console.log('PASS: homepage, strobo, running text, animation controls, prompt assistant, autosave, theme, responsive layout, and screenshots.');
+            console.log('PASS: homepage, strobo, running text, animation controls, prompt assistant, autosave, theme, PWA manifest, service worker registration, responsive layout, and screenshots.');
           })().catch(e => { console.error(e); process.exit(1); });
           EOF
           node smoke-test.cjs
